@@ -15,6 +15,9 @@ _LOGGER = logging.getLogger(__name__)
 
 _DEFAULT_TIMEOUT: tuple[float, float] = (5.0, 60.0)
 
+# Reinis reports PMD as "plastic".
+_TYPE_ALIASES = {"plastic": "pmd"}
+
 
 def _build_base_url(provider: str) -> str:
     if provider not in SENSOR_COLLECTORS_REINIS:
@@ -96,7 +99,8 @@ def _parse_waste_data_raw(
         if not title:
             continue
 
-        afval_type = waste_type_rename(title, postal_code)
+        title = title.strip().lower()
+        afval_type = waste_type_rename(_TYPE_ALIASES.get(title, title), postal_code)
         if not afval_type:
             continue
 
