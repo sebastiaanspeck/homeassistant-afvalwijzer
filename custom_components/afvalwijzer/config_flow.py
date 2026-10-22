@@ -39,6 +39,7 @@ from .const.const import (
     DEFAULT_INCLUDE_TODAY,
     DEFAULT_SEPARATE_CALENDARS,
     DEFAULT_SHOW_FULL_TIMESTAMP,
+    DEPRECATED_COLLECTORS,
     DOMAIN,
     SENSOR_COLLECTORS_AMSTERDAM,
     SENSOR_COLLECTORS_BURGERPORTAAL,
@@ -102,6 +103,7 @@ def _collector_choices() -> dict[str, str]:
     choices = {
         COLLECTOR_LABELS.get(collector, collector): collector
         for collector in ALL_COLLECTORS
+        if collector not in DEPRECATED_COLLECTORS
     }
     taken = {text.casefold() for text in choices}
 
@@ -115,19 +117,27 @@ def _collector_choices() -> dict[str, str]:
 
 COLLECTOR_CHOICES = _collector_choices()
 _CHOICES_CASEFOLD = {text.casefold(): key for text, key in COLLECTOR_CHOICES.items()}
+_DEPRECATED_CASEFOLD = {
+    COLLECTOR_LABELS.get(key, key).casefold(): key for key in DEPRECATED_COLLECTORS
+}
 
 
-def _resolve_collector(choice: str) -> str | None:
+def _resolve_collector(choice: str, keep: str | None = None) -> str | None:
     """Return the collector for a dropdown entry, or None if it isn't a valid one.
 
-    Accepts the displayed text (case-insensitive) or the collector key itself.
+    Accepts the displayed text (case-insensitive) or the collector key itself. A
+    deprecated collector resolves to its replacement, unless it is the collector that
+    is already in use (keep), so reconfiguring an entry doesn't force a switch.
     """
     choice = choice.strip().casefold()
-    if choice in _CHOICES_CASEFOLD:
-        return _CHOICES_CASEFOLD[choice]
-    if choice in ALL_COLLECTORS:
-        return choice
-    return None
+    collector = (
+        _CHOICES_CASEFOLD.get(choice)
+        or _DEPRECATED_CASEFOLD.get(choice)
+        or (choice if choice in ALL_COLLECTORS else None)
+    )
+    if collector in DEPRECATED_COLLECTORS and collector != keep:
+        return DEPRECATED_COLLECTORS[collector]
+    return collector
 
 
 def _collector_label(collector: str) -> str:
@@ -140,8 +150,10 @@ def _display_collector(value: str) -> str:
     return _collector_label(value) if value in ALL_COLLECTORS else value
 
 
-def _collector_selector() -> SelectSelector:
+def _collector_selector(current: str | None = None) -> SelectSelector:
     """Return a searchable dropdown with all municipalities and collectors.
+
+    A deprecated collector is only listed when it is the one in use (current).
 
     custom_value is on because Home Assistant only offers type-to-search then, so
     the steps must reject anything that isn't a listed entry (invalid_collector).
@@ -149,7 +161,15 @@ def _collector_selector() -> SelectSelector:
     return SelectSelector(
         SelectSelectorConfig(
             options=[
-                SelectOptionDict(value=text, label=text) for text in COLLECTOR_CHOICES
+                SelectOptionDict(value=text, label=text)
+                for text in (
+                    *COLLECTOR_CHOICES,
+                    *(
+                        [_collector_label(current)]
+                        if current in DEPRECATED_COLLECTORS
+                        else []
+                    ),
+                )
             ],
             mode=SelectSelectorMode.DROPDOWN,
             custom_value=True,
@@ -186,7 +206,7 @@ def _reconfigure_schema_for(current: dict[str, Any]) -> vol.Schema:
         vol.Required(
             CONF_COLLECTOR,
             default=_collector_label(current.get(CONF_COLLECTOR, "")),
-        ): _collector_selector(),
+        ): _collector_selector(current.get(CONF_COLLECTOR)),
         vol.Required(
             CONF_POSTAL_CODE, default=current.get(CONF_POSTAL_CODE, "")
         ): cv.string,
@@ -353,7 +373,12 @@ class AfvalwijzerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             cleaned = _clean_user_input(user_input)
             typed_collector = str(cleaned[CONF_COLLECTOR])
-            resolved = _resolve_collector(typed_collector)
+            in_use = (
+                self._reconfigure_entry.data.get(CONF_COLLECTOR)
+                if self._reconfigure_entry
+                else None
+            )
+            resolved = _resolve_collector(typed_collector, keep=in_use)
             cleaned[CONF_COLLECTOR] = resolved or typed_collector
 
             postal_code = str(cleaned[CONF_POSTAL_CODE])

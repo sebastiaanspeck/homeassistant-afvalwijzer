@@ -13,6 +13,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_call_later, async_track_time_change
 
 from .const.const import (
+    CONF_COLLECTOR,
     CONF_DEFAULT_LABEL,
     CONF_EXCLUDE_LIST,
     CONF_EXCLUDE_PICKUP_TODAY,
@@ -22,6 +23,7 @@ from .const.const import (
     DEFAULT_EXCLUDE_LIST,
     DEFAULT_INCLUDE_TODAY,
     DEFAULT_SHOW_FULL_TIMESTAMP,
+    DEPRECATED_COLLECTORS,
     DOMAIN,
 )
 from .coordinator import AfvalwijzerDataUpdateCoordinator, async_remove_cache
@@ -135,6 +137,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return True
 
     hass.data.setdefault(DOMAIN, {})
+
+    collector = entry.data.get(CONF_COLLECTOR)
+    if collector in DEPRECATED_COLLECTORS:
+        _LOGGER.warning(
+            "The collector '%s' is deprecated and replaced by '%s'. It keeps working, "
+            "but is no longer offered for new setups",
+            collector,
+            DEPRECATED_COLLECTORS[collector],
+        )
 
     options = _migrate_options_if_needed(hass, entry)
     effective_config = _build_effective_config(entry, options)

@@ -9,6 +9,7 @@ from custom_components.afvalwijzer.config_flow import (
 from custom_components.afvalwijzer.const.const import (
     COLLECTOR_LABELS,
     CONF_COLLECTOR,
+    DEPRECATED_COLLECTORS,
 )
 
 
@@ -32,11 +33,11 @@ def test_selector_is_searchable_and_shows_the_display_text():
     assert {option["value"] for option in config["options"]} == set(COLLECTOR_CHOICES)
 
 
-def test_every_collector_is_offered_under_its_display_name():
-    """All collectors stay selectable."""
-    assert {COLLECTOR_CHOICES[COLLECTOR_LABELS[key]] for key in ALL_COLLECTORS} == set(
-        ALL_COLLECTORS
-    )
+def test_every_current_collector_is_offered_under_its_display_name():
+    """All collectors that aren't deprecated stay selectable."""
+    current = set(ALL_COLLECTORS) - set(DEPRECATED_COLLECTORS)
+
+    assert {COLLECTOR_CHOICES[COLLECTOR_LABELS[key]] for key in current} == current
     assert COLLECTOR_CHOICES["Cyclus NV"] == "cyclus"
     assert COLLECTOR_CHOICES["Súdwest-Fryslân"] == "sudwestfryslan"
 

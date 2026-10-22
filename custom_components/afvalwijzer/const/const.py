@@ -162,6 +162,15 @@ SENSOR_COLLECTORS_XIMMIO_IDS = {
     "ximmio": "800bf8d7-6dd1-4490-ba9d-b419d6dc8a45",
 }
 
+# Collectors that were replaced by, or are an alias of, another collector (old: new).
+# They keep working for existing config entries (their URLs stay in the tables below),
+# but are no longer offered for new setups. The collector key is part of the unique id
+# of an entry and its sensors, so existing entries are not migrated automatically.
+DEPRECATED_COLLECTORS = {
+    "afvalstoffendienstkalender": "afvalstoffendienst",
+    "suez": "prezero",
+}
+
 # Display names for the collector selection in the config flow, keyed by collector.
 # A collector missing here is shown under its key (tests/test_collector_labels.py
 # makes sure every selectable collector has one).
