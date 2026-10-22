@@ -150,10 +150,14 @@ def _display_collector(value: str) -> str:
     return _collector_label(value) if value in ALL_COLLECTORS else value
 
 
-def _collector_selector(current: str | None = None) -> SelectSelector:
+def _collector_selector(
+    current: str | None = None, *, blank: bool = False
+) -> SelectSelector:
     """Return a searchable dropdown with all municipalities and collectors.
 
-    A deprecated collector is only listed when it is the one in use (current).
+    A deprecated collector is only listed when it is the one in use (current). With
+    blank, an empty entry comes first, so nothing is preselected (otherwise the
+    frontend picks the first collector).
 
     custom_value is on because Home Assistant only offers type-to-search then, so
     the steps must reject anything that isn't a listed entry (invalid_collector).
@@ -161,25 +165,30 @@ def _collector_selector(current: str | None = None) -> SelectSelector:
     return SelectSelector(
         SelectSelectorConfig(
             options=[
-                SelectOptionDict(value=text, label=text)
-                for text in (
-                    *COLLECTOR_CHOICES,
-                    *(
-                        [_collector_label(current)]
-                        if current in DEPRECATED_COLLECTORS
-                        else []
-                    ),
-                )
+                *([SelectOptionDict(value="", label="")] if blank else []),
+                *(
+                    SelectOptionDict(value=text, label=text)
+                    for text in (
+                        *COLLECTOR_CHOICES,
+                        *(
+                            [_collector_label(current)]
+                            if current in DEPRECATED_COLLECTORS
+                            else []
+                        ),
+                    )
+                ),
             ],
             mode=SelectSelectorMode.DROPDOWN,
-            custom_value=True,
+            custom_value=True,  # allows to properly search while typing in the dropdown
             multiple=False,
             sort=True,
         )
     )
 
 
-COLLECTOR_SCHEMA = vol.Schema({vol.Required(CONF_COLLECTOR): _collector_selector()})
+COLLECTOR_SCHEMA = vol.Schema(
+    {vol.Required(CONF_COLLECTOR): _collector_selector(blank=True)}
+)
 
 
 def _address_schema_for(collector: str | None) -> vol.Schema:
