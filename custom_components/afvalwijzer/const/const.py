@@ -163,12 +163,15 @@ SENSOR_COLLECTORS_XIMMIO_IDS = {
 }
 
 # Collectors that were replaced by, or are an alias of, another collector (old: new).
-# They keep working for existing config entries (their URLs stay in the tables below),
-# but are no longer offered for new setups. The collector key is part of the unique id
-# of an entry and its sensors, so existing entries are not migrated automatically.
+# They are no longer offered for new setups; choosing one resolves to its replacement.
+# Existing config entries keep the old key and its code path (whether the old collector
+# still returns data depends on the provider: an alias such as afvalstoffendienstkalender
+# does, a retired one such as westland doesn't). The collector key is part of the unique
+# id of an entry and its sensors, so existing entries are not migrated automatically.
 DEPRECATED_COLLECTORS = {
     "afvalstoffendienstkalender": "afvalstoffendienst",
     "suez": "prezero",
+    "westland": "hvc",
 }
 
 # Display names for the collector selection in the config flow, keyed by collector.

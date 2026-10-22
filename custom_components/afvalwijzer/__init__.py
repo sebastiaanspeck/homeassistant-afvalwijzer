@@ -141,8 +141,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     collector = entry.data.get(CONF_COLLECTOR)
     if collector in DEPRECATED_COLLECTORS:
         _LOGGER.warning(
-            "The collector '%s' is deprecated and replaced by '%s'. It keeps working, "
-            "but is no longer offered for new setups",
+            "The collector '%s' is deprecated, use '%s' instead. It is no longer offered "
+            "for new setups (reconfigure the entry to switch)",
             collector,
             DEPRECATED_COLLECTORS[collector],
         )

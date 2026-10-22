@@ -29,10 +29,13 @@ def test_deprecated_collectors_are_known_and_replaced_by_a_current_one():
         assert new not in DEPRECATED_COLLECTORS
 
 
-def test_deprecated_collectors_keep_working():
-    """Existing entries still find the URL of their collector."""
-    for old, new in DEPRECATED_COLLECTORS.items():
-        assert SENSOR_COLLECTORS_OPZET[old] == SENSOR_COLLECTORS_OPZET[new]
+def test_an_alias_uses_the_same_url_as_its_replacement():
+    """Afvalstoffendienstkalender and suez are the same provider as their replacement."""
+    assert (
+        SENSOR_COLLECTORS_OPZET["afvalstoffendienstkalender"]
+        == SENSOR_COLLECTORS_OPZET["afvalstoffendienst"]
+    )
+    assert SENSOR_COLLECTORS_OPZET["suez"] == SENSOR_COLLECTORS_OPZET["prezero"]
 
 
 def test_no_municipality_points_to_a_deprecated_collector():
@@ -44,6 +47,8 @@ def test_deprecated_collectors_are_not_offered_for_new_setups():
     """The dropdown lists the replacement but not the deprecated collector."""
     assert "Suez" not in COLLECTOR_CHOICES
     assert "PreZero" in COLLECTOR_CHOICES
+    assert "Westland" not in COLLECTOR_CHOICES
+    assert "HVC" in COLLECTOR_CHOICES
     assert "Afvalstoffendienst kalender" not in COLLECTOR_CHOICES
     assert "Afvalstoffendienst" in COLLECTOR_CHOICES
 
@@ -53,6 +58,8 @@ def test_deprecated_collectors_are_not_offered_for_new_setups():
     [
         ("suez", "prezero"),
         ("Suez", "prezero"),
+        ("westland", "hvc"),
+        ("Westland", "hvc"),
         ("afvalstoffendienstkalender", "afvalstoffendienst"),
         ("Afvalstoffendienst kalender", "afvalstoffendienst"),
         ("prezero", "prezero"),
