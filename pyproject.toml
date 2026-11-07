@@ -258,3 +258,12 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 # Let Home Assistant install its httpx alias before respx is imported.
 addopts = "-p no:respx --ignore=tests/test_module.py"
+# Deprecations raised while pytest-homeassistant imports Home Assistant Core and
+# its dependencies, not by this integration. Scoped to the emitting modules so
+# new warnings from our own code still show up.
+filterwarnings = [
+    # aiohttp, about Home Assistant Core's HomeAssistantApplication.
+    "ignore:Inheritance class HomeAssistantApplication from web.Application is discouraged:DeprecationWarning:homeassistant\\.components\\.http\\.server",
+    # backoff 2.2.1 (latest release, via aiogithubapi) still calls asyncio.iscoroutinefunction.
+    "ignore:'asyncio.iscoroutinefunction' is deprecated:DeprecationWarning:backoff\\..*",
+]
