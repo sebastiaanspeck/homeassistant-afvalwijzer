@@ -108,7 +108,6 @@ async def test_setup_warns_about_a_deprecated_collector(collector, warned, caplo
     hass = MagicMock()
 
     with (
-        patch("custom_components.afvalwijzer._skip_runtime_setup", return_value=False),
         patch(
             "custom_components.afvalwijzer._migrate_options_if_needed",
             side_effect=RuntimeError("stop after the warning"),
