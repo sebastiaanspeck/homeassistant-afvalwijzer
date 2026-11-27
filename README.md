@@ -530,6 +530,15 @@ actions:
 > tapping a mobile notification:
 > `data: {url: "{{ notifs[-1].links[0].url if notifs[-1].links is defined }}"}`.
 
+> **RD4 (and Geul en Maas)** reads its messages from the RD4 app API for your address,
+> the way the app does before you link a waste card, and only shows messages from the
+> last 30 days. The inbox only holds a short teaser, so for each message the integration
+> also reads the article behind it. The article's call to action (for example "Lees meer
+> over minder GFT-afval") is added as the first entry in `links` and appended to
+> `content` as a Markdown link, followed by any links in the article text. If the
+> article can't be read, the message is kept as the teaser. This costs one extra request
+> per recent message.
+
 > The `not_from` guard matters: reloading the integration briefly sets the sensor to
 > `unavailable`, so a trigger without it fires again when the sensor comes back and
 > re-sends a message you have already seen.
